@@ -12,11 +12,9 @@ fn parse() -> Vec<Card> {
         let line = line.unwrap();
 
         let parts = line.split(":").collect::<Vec<_>>();
-        let id = parts[0].strip_prefix("Card ").unwrap().parse::<u32>().unwrap();
+        let id = parts[0].strip_prefix("Card").unwrap().trim().parse::<u32>().unwrap();
 
         let number_parts = parts[1].split("|").collect::<Vec<_>>();
-
-        println!("number_parts: {:?}", number_parts);
 
         let winning = number_parts[0].split_ascii_whitespace().map(|x| x.parse::<u32>().unwrap() ).collect::<Vec<_>>();
         let numbers = number_parts[1].split_ascii_whitespace().map(|x| x.parse::<u32>().unwrap() ).collect::<Vec<_>>();
@@ -42,7 +40,31 @@ fn first_star(cards: &Vec<Card>) -> u32 {
     }).sum()
 }
 
+fn second_star(cards: &Vec<Card>) -> u32 {
+    let winning = cards.iter().map(|card| {
+        let mut winning = 0;
+        for number in &card.winning {
+            if card.numbers.contains(number) {
+                winning += 1;
+            }
+        }
+        winning
+    }).collect::<Vec<_>>();
+
+    let n = cards.len();
+    let mut copies = std::iter::repeat(1).take(n).collect::<Vec<u32>>();
+    for (idx, wins) in winning.iter().enumerate() {
+
+        for i in idx+1..std::cmp::min(idx+wins+1, n) {
+            copies[i] += copies[idx];
+        }
+    }
+
+    copies.iter().sum()
+}
+
 fn main() {
     let input = parse();
     println!("1st: {}", first_star(&input));
+    println!("2nd: {}", second_star(&input));
 }
